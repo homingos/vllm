@@ -810,6 +810,17 @@ class ChatCompletionRequest(OpenAIBaseModel):
 
     @model_validator(mode="before")
     @classmethod
+    def extract_vllm_xargs_from_extra_body(cls, data):
+        if isinstance(data, dict) and "extra_body" in data:
+            extra_body = data["extra_body"]
+            if isinstance(extra_body, dict) and "vllm_xargs" in extra_body:
+                if "vllm_xargs" not in data:
+                    data["vllm_xargs"] = extra_body["vllm_xargs"]
+                del data["extra_body"]
+        return data
+    
+    @model_validator(mode="before")
+    @classmethod
     def validate_stream_options(cls, data):
         if data.get("stream_options") and not data.get("stream"):
             raise ValueError(
